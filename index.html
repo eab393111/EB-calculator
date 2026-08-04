@@ -1,0 +1,684 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EB Printing Profit Calculator</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.06), transparent 30%),
+        linear-gradient(135deg, #111111, #252525, #444444);
+      color: #ffffff;
+      padding: 30px 16px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .header {
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      font-size: 34px;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .header p {
+      color: #bdbdbd;
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: rgba(20, 20, 20, 0.92);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+      backdrop-filter: blur(10px);
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 18px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: #d2d2d2;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 10px;
+      border: 1px solid #555;
+      background: #171717;
+      color: #ffffff;
+      font-size: 16px;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    input:focus {
+      border-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 13px 14px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary-btn {
+      background: #f2f2f2;
+      color: #111;
+    }
+
+    .secondary-btn {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+    }
+
+    .danger-btn {
+      background: #5a1f1f;
+      color: white;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .result-box {
+      background: #181818;
+      border: 1px solid #383838;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .result-box span {
+      display: block;
+      color: #aaaaaa;
+      font-size: 13px;
+      margin-bottom: 7px;
+    }
+
+    .result-box strong {
+      font-size: 21px;
+    }
+
+    .profit-positive {
+      color: #8ee59b;
+    }
+
+    .profit-negative {
+      color: #ff8e8e;
+    }
+
+    .chart-card {
+      margin-top: 20px;
+    }
+
+    .chart-wrap {
+      height: 330px;
+    }
+
+    .history-card {
+      margin-top: 20px;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 10px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      background: #181818;
+      border: 1px solid #343434;
+      border-radius: 10px;
+      padding: 13px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .history-item small {
+      color: #999;
+      display: block;
+      margin-top: 4px;
+    }
+
+    .empty-history {
+      color: #8f8f8f;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: #777;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 28px;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .button-row {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-wrap {
+        height: 280px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <div class="header">
+      <h1>EB Printing Profit Calculator</h1>
+      <p>Calculate revenue, total cost, profit, and break-even quantity.</p>
+    </div>
+
+    <div class="grid">
+
+      <div class="card">
+        <h2>Calculator Inputs</h2>
+
+        <div class="form-group">
+          <label for="quantity">Quantity</label>
+          <input type="number" id="quantity" placeholder="Example: 10000" min="0" />
+        </div>
+
+        <div class="form-group">
+          <label for="sellingPrice">Selling Price per Cup (BHD)</label>
+          <input type="number" id="sellingPrice" placeholder="Example: 0.045" step="0.001" min="0" />
+        </div>
+
+        <div class="form-group">
+          <label for="cupCost">Cost per Cup (BHD)</label>
+          <input type="number" id="cupCost" placeholder="Example: 0.012" step="0.001" min="0" />
+        </div>
+
+        <div class="form-group">
+          <label for="monthlyExpenses">Monthly Fixed Expenses (BHD)</label>
+          <input type="number" id="monthlyExpenses" placeholder="Example: 1200" step="0.001" min="0" />
+        </div>
+
+        <div class="button-row">
+          <button class="primary-btn" onclick="calculateProfit()">Calculate</button>
+          <button class="secondary-btn" onclick="saveCalculation()">Save Result</button>
+          <button class="danger-btn" onclick="clearFields()">Clear</button>
+          <button class="secondary-btn" onclick="exportCSV()">Export CSV</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Results</h2>
+
+        <div class="result-grid">
+          <div class="result-box">
+            <span>Total Revenue</span>
+            <strong id="revenueResult">0.000 BHD</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Variable Cost</span>
+            <strong id="variableCostResult">0.000 BHD</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Total Cost</span>
+            <strong id="totalCostResult">0.000 BHD</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Net Profit</span>
+            <strong id="profitResult">0.000 BHD</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Profit Margin</span>
+            <strong id="marginResult">0.00%</strong>
+          </div>
+
+          <div class="result-box">
+            <span>Break-even Quantity</span>
+            <strong id="breakEvenResult">0 cups</strong>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="card chart-card">
+      <h2>Profit Chart</h2>
+      <div class="chart-wrap">
+        <canvas id="profitChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card history-card">
+      <div class="history-header">
+        <h2>Calculation History</h2>
+        <button class="danger-btn" onclick="clearHistory()">Clear History</button>
+      </div>
+
+      <div id="historyList" class="history-list"></div>
+    </div>
+
+    <div class="footer-note">
+      EB Printing Dashboard
+    </div>
+
+  </div>
+
+  <script>
+    const STORAGE_KEY = "EB_PRINTING_INPUTS";
+    const HISTORY_KEY = "EB_PRINTING_HISTORY";
+
+    let profitChart = null;
+    let lastCalculation = null;
+
+    function getNumber(id) {
+      const value = parseFloat(document.getElementById(id).value);
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function formatBHD(value) {
+      return `${value.toFixed(3)} BHD`;
+    }
+
+    function calculateProfit() {
+      const quantity = getNumber("quantity");
+      const sellingPrice = getNumber("sellingPrice");
+      const cupCost = getNumber("cupCost");
+      const monthlyExpenses = getNumber("monthlyExpenses");
+
+      const revenue = quantity * sellingPrice;
+      const variableCost = quantity * cupCost;
+      const totalCost = variableCost + monthlyExpenses;
+      const profit = revenue - totalCost;
+
+      const margin = revenue > 0
+        ? (profit / revenue) * 100
+        : 0;
+
+      const contributionPerCup = sellingPrice - cupCost;
+
+      const breakEvenQuantity = contributionPerCup > 0
+        ? Math.ceil(monthlyExpenses / contributionPerCup)
+        : 0;
+
+      document.getElementById("revenueResult").textContent = formatBHD(revenue);
+      document.getElementById("variableCostResult").textContent = formatBHD(variableCost);
+      document.getElementById("totalCostResult").textContent = formatBHD(totalCost);
+      document.getElementById("profitResult").textContent = formatBHD(profit);
+      document.getElementById("marginResult").textContent = `${margin.toFixed(2)}%`;
+      document.getElementById("breakEvenResult").textContent =
+        contributionPerCup > 0
+          ? `${breakEvenQuantity.toLocaleString()} cups`
+          : "Not available";
+
+      const profitElement = document.getElementById("profitResult");
+
+      profitElement.classList.remove("profit-positive", "profit-negative");
+
+      if (profit >= 0) {
+        profitElement.classList.add("profit-positive");
+      } else {
+        profitElement.classList.add("profit-negative");
+      }
+
+      lastCalculation = {
+        quantity,
+        sellingPrice,
+        cupCost,
+        monthlyExpenses,
+        revenue,
+        variableCost,
+        totalCost,
+        profit,
+        margin,
+        breakEvenQuantity,
+        date: new Date().toLocaleString()
+      };
+
+      saveInputs();
+      updateProfitChart(revenue, totalCost, profit);
+    }
+
+    function updateProfitChart(revenue, totalCost, profit) {
+      const chartCanvas = document.getElementById("profitChart");
+
+      if (profitChart) {
+        profitChart.destroy();
+      }
+
+      profitChart = new Chart(chartCanvas, {
+        type: "bar",
+        data: {
+          labels: ["Revenue", "Total Cost", "Profit"],
+          datasets: [
+            {
+              label: "Amount in BHD",
+              data: [revenue, totalCost, profit],
+              backgroundColor: [
+                "rgba(220, 220, 220, 0.75)",
+                "rgba(140, 140, 140, 0.75)",
+                profit >= 0
+                  ? "rgba(105, 190, 120, 0.75)"
+                  : "rgba(210, 90, 90, 0.75)"
+              ],
+              borderColor: [
+                "rgba(240, 240, 240, 1)",
+                "rgba(170, 170, 170, 1)",
+                profit >= 0
+                  ? "rgba(105, 190, 120, 1)"
+                  : "rgba(210, 90, 90, 1)"
+              ],
+              borderWidth: 1,
+              borderRadius: 8
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: "#d0d0d0"
+              },
+              grid: {
+                color: "rgba(255,255,255,0.05)"
+              }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: "#d0d0d0"
+              },
+              grid: {
+                color: "rgba(255,255,255,0.08)"
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function saveInputs() {
+      const inputData = {
+        quantity: document.getElementById("quantity").value,
+        sellingPrice: document.getElementById("sellingPrice").value,
+        cupCost: document.getElementById("cupCost").value,
+        monthlyExpenses: document.getElementById("monthlyExpenses").value
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(inputData));
+    }
+
+    function loadInputs() {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+
+      if (!savedData) return;
+
+      try {
+        const inputData = JSON.parse(savedData);
+
+        document.getElementById("quantity").value = inputData.quantity || "";
+        document.getElementById("sellingPrice").value = inputData.sellingPrice || "";
+        document.getElementById("cupCost").value = inputData.cupCost || "";
+        document.getElementById("monthlyExpenses").value = inputData.monthlyExpenses || "";
+
+        calculateProfit();
+      } catch (error) {
+        console.error("Could not load saved inputs:", error);
+      }
+    }
+
+    function saveCalculation() {
+      calculateProfit();
+
+      if (!lastCalculation) return;
+
+      const history = getHistory();
+      history.unshift(lastCalculation);
+
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      renderHistory();
+    }
+
+    function getHistory() {
+      const savedHistory = localStorage.getItem(HISTORY_KEY);
+
+      if (!savedHistory) return [];
+
+      try {
+        return JSON.parse(savedHistory);
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function renderHistory() {
+      const historyList = document.getElementById("historyList");
+      const history = getHistory();
+
+      if (history.length === 0) {
+        historyList.innerHTML = `
+          <div class="empty-history">
+            No calculations saved yet.
+          </div>
+        `;
+        return;
+      }
+
+      historyList.innerHTML = history.map((item, index) => `
+        <div class="history-item">
+          <div>
+            <strong>
+              ${item.quantity.toLocaleString()} cups —
+              Profit: ${formatBHD(item.profit)}
+            </strong>
+            <small>
+              Selling price: ${item.sellingPrice.toFixed(3)} BHD |
+              Cost: ${item.cupCost.toFixed(3)} BHD |
+              ${item.date}
+            </small>
+          </div>
+
+          <button class="danger-btn" onclick="deleteHistoryItem(${index})">
+            Delete
+          </button>
+        </div>
+      `).join("");
+    }
+
+    function deleteHistoryItem(index) {
+      const history = getHistory();
+      history.splice(index, 1);
+
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      renderHistory();
+    }
+
+    function clearHistory() {
+      localStorage.removeItem(HISTORY_KEY);
+      renderHistory();
+    }
+
+    function clearFields() {
+      document.getElementById("quantity").value = "";
+      document.getElementById("sellingPrice").value = "";
+      document.getElementById("cupCost").value = "";
+      document.getElementById("monthlyExpenses").value = "";
+
+      document.getElementById("revenueResult").textContent = "0.000 BHD";
+      document.getElementById("variableCostResult").textContent = "0.000 BHD";
+      document.getElementById("totalCostResult").textContent = "0.000 BHD";
+      document.getElementById("profitResult").textContent = "0.000 BHD";
+      document.getElementById("marginResult").textContent = "0.00%";
+      document.getElementById("breakEvenResult").textContent = "0 cups";
+
+      document
+        .getElementById("profitResult")
+        .classList.remove("profit-positive", "profit-negative");
+
+      if (profitChart) {
+        profitChart.destroy();
+        profitChart = null;
+      }
+
+      lastCalculation = null;
+      localStorage.removeItem(STORAGE_KEY);
+    }
+
+    function exportCSV() {
+      const history = getHistory();
+
+      if (history.length === 0) {
+        alert("Save at least one calculation before exporting.");
+        return;
+      }
+
+      const headers = [
+        "Date",
+        "Quantity",
+        "Selling Price",
+        "Cup Cost",
+        "Monthly Expenses",
+        "Revenue",
+        "Variable Cost",
+        "Total Cost",
+        "Profit",
+        "Profit Margin",
+        "Break-even Quantity"
+      ];
+
+      const rows = history.map(item => [
+        item.date,
+        item.quantity,
+        item.sellingPrice,
+        item.cupCost,
+        item.monthlyExpenses,
+        item.revenue,
+        item.variableCost,
+        item.totalCost,
+        item.profit,
+        item.margin,
+        item.breakEvenQuantity
+      ]);
+
+      const csvContent = [
+        headers,
+        ...rows
+      ]
+        .map(row =>
+          row.map(value =>
+            `"${String(value).replace(/"/g, '""')}"`
+          ).join(",")
+        )
+        .join("\n");
+
+      const blob = new Blob([csvContent], {
+        type: "text/csv;charset=utf-8;"
+      });
+
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+
+      link.href = url;
+      link.download = "EB_Printing_Calculations.csv";
+      link.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    document.querySelectorAll("input").forEach(input => {
+      input.addEventListener("input", saveInputs);
+    });
+
+    loadInputs();
+    renderHistory();
+  </script>
+</body>
+</html>
